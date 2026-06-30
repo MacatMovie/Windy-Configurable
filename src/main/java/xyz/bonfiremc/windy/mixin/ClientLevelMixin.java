@@ -23,15 +23,29 @@ public abstract class ClientLevelMixin {
         }
 
         WindyConfig config = WindyConfig.get();
-        if (!config.spawnWind || blockPos.getY() < config.minimumWindHeight) {
+        if (!config.spawnWind || blockPos.getY() < config.getActiveMinimumWindHeight()) {
             return;
         }
         if (config.windMustSeeSky && !world.canSeeSky(blockPos)) {
             return;
         }
 
+        double heightMultiplier = config.getHeightSpawnRateMultiplier(blockPos.getY());
+        if (heightMultiplier <= 0.0D) {
+            return;
+        }
+
+        double biomeMultiplier = 1.0D;
+        if (config.biomeWind != null && config.biomeWind.enabled) {
+            biomeMultiplier = config.getBiomeSpawnRateMultiplier(world.getBiome(blockPos));
+            if (biomeMultiplier <= 0.0D) {
+                return;
+            }
+        }
+
         double baseChancePercent = world.isThundering() ? 0.020D : 0.015D;
-        if (random.nextDouble() * 100.0D <= baseChancePercent * config.spawnRateMultiplier) {
+        double finalChancePercent = baseChancePercent * heightMultiplier * biomeMultiplier;
+        if (random.nextDouble() * 100.0D <= finalChancePercent) {
             boolean useStrongWind = world.isRaining() || world.isThundering();
             if (!WindyParticleSpawner.canSpawn(useStrongWind)) {
                 return;

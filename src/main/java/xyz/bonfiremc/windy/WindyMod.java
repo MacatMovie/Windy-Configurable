@@ -32,7 +32,7 @@ public class WindyMod {
     }
 
     public static Path getConfigPath() {
-        return FMLPaths.CONFIGDIR.get().resolve("windy-config.json");
+        return FMLPaths.CONFIGDIR.get().resolve("windy-config.toml");
     }
 
     private void onClientSetup(final FMLClientSetupEvent event) {
