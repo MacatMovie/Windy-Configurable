@@ -1,0 +1,12 @@
+{
+    "yacl3.config.windy:config.category.general": "Загальне",
+
+    "yacl3.config.windy:config.spawnWind": "Сотворєти вітер",
+    "yacl3.config.windy:config.spawnWind.desc": "Завідує, ци будут дрібки вітру сотворювати сє у сьвітї.\n\nВизначено: §aТа",
+    "yacl3.config.windy:config.minimumWindHeight": "Мінїмальна висота вітру",
+    "yacl3.config.windy:config.minimumWindHeight.desc": "Мінїмальна висота, на якій можуть сотворювати сє дрібки вітру.\n\nВизначено: 83",
+    "yacl3.config.windy:config.windMustSeeSky": "Вітер лиш під втвореним небом",
+    "yacl3.config.windy:config.windMustSeeSky.desc": "Завідує, ци дрібки вітру сотворюют сє лиш там, де видно небо.\n\nВизначено: §aТа",
+    "yacl3.config.windy:config.windFrequency": "Чєстота вітру",
+    "yacl3.config.windy:config.windFrequency.desc": "Завідує тим, як чєсто сотворюют сє дрібки вітру.\n\nВизначено: 1.0%"
+}

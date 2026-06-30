@@ -1,7 +1,0 @@
-# 0.0 = fully anchored to the original jukebox position (vanilla behavior).
-# 1.0 = fully projected in front of the listener (strongest "turn-away doesn't mute" effect).
-# Recommended: 0.75 - 0.95
-anchor_blend = 0.85
-
-# Enable to print debug logs
-debug_log = false

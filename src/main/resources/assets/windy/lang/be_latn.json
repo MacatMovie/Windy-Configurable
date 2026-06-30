@@ -1,0 +1,12 @@
+{
+    "yacl3.config.windy:config.category.general": "Hałoŭnaje",
+
+    "yacl3.config.windy:config.spawnWind": "Stvarać viecier",
+    "yacl3.config.windy:config.spawnWind.desc": "Kiruje tym, ci buduć čaścinki vietru stvaracca ŭ śviecie.\n\nUstalavana: §aTak",
+    "yacl3.config.windy:config.minimumWindHeight": "Minimalnaja vyšynia vietru",
+    "yacl3.config.windy:config.minimumWindHeight.desc": "Minimalnaja vyšynia, na jakoj mohuć stvaracca čaścinki vietru.\n\nUstalavana: 83",
+    "yacl3.config.windy:config.windMustSeeSky": "Viecier tolki pad adkrytym niebam",
+    "yacl3.config.windy:config.windMustSeeSky.desc": "Kiruje tym, ci čaścinki vietru stvarajucca tolki ŭ miescach z dostupam da nieba.\n\nUstalavana: §aTak",
+    "yacl3.config.windy:config.windFrequency": "Častata vietru",
+    "yacl3.config.windy:config.windFrequency.desc": "Kiruje tym, jak časta stvarajucca čaścinki vietru.\n\nUstalavana: 1.0%"
+}
