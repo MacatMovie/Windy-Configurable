@@ -47,15 +47,20 @@ public class WindyConfig {
     public static void load() {
         Path path = WindyMod.getConfigPath();
         Path legacyJsonPath = path.resolveSibling("windy-config.json");
+        boolean shouldSaveConfig = true;
         try {
             Files.createDirectories(path.getParent());
             if (Files.exists(path)) {
-                INSTANCE = readToml(path);
+                TomlReadResult result = readToml(path);
+                INSTANCE = result.config;
+                shouldSaveConfig = !result.hadParseProblems;
             } else if (Files.exists(legacyJsonPath)) {
                 readLegacyJson(legacyJsonPath);
             }
             INSTANCE.clamp();
-            save();
+            if (shouldSaveConfig) {
+                save();
+            }
         } catch (IOException e) {
             throw new RuntimeException("Failed to load Windy config", e);
         }
@@ -248,14 +253,34 @@ public class WindyConfig {
         clearBiomeCache();
     }
 
-    private static WindyConfig readToml(Path path) throws IOException {
+    private static TomlReadResult readToml(Path path) throws IOException {
         WindyConfig config = new WindyConfig();
+        TomlParseState state = new TomlParseState();
         String section = "";
         boolean multipliersSectionCleared = false;
+
+        String multilineKey = null;
+        String multilineSection = "";
+        StringBuilder multilineValue = new StringBuilder();
 
         for (String rawLine : Files.readAllLines(path)) {
             String line = stripInlineComment(rawLine).trim();
             if (line.isEmpty()) {
+                continue;
+            }
+
+            if (multilineKey != null) {
+                if (multilineValue.length() > 0) {
+                    multilineValue.append('\n');
+                }
+                multilineValue.append(line);
+
+                if (isCompleteTomlArray(multilineValue.toString())) {
+                    applyTomlValue(config, multilineSection, multilineKey, multilineValue.toString(), state);
+                    multilineKey = null;
+                    multilineSection = "";
+                    multilineValue.setLength(0);
+                }
                 continue;
             }
 
@@ -270,46 +295,59 @@ public class WindyConfig {
 
             int equals = findUnquotedEquals(line);
             if (equals < 0) {
+                state.hadParseProblems = true;
                 continue;
             }
 
             String key = parseTomlKey(line.substring(0, equals).trim());
             String value = line.substring(equals + 1).trim();
-            applyTomlValue(config, section, key, value);
+            if (value.startsWith("[") && !isCompleteTomlArray(value)) {
+                multilineKey = key;
+                multilineSection = section;
+                multilineValue.setLength(0);
+                multilineValue.append(value);
+                continue;
+            }
+
+            applyTomlValue(config, section, key, value, state);
         }
 
-        return config;
+        if (multilineKey != null) {
+            state.hadParseProblems = true;
+        }
+
+        return new TomlReadResult(config, state.hadParseProblems);
     }
 
-    private static void applyTomlValue(WindyConfig config, String section, String key, String value) {
+    private static void applyTomlValue(WindyConfig config, String section, String key, String value, TomlParseState state) {
         if (isSection(section, "")) {
             switch (key) {
-                case "config_version", "configVersion" -> config.configVersion = parseInt(value, config.configVersion);
-                case "spawn_wind", "spawnWind" -> config.spawnWind = parseBoolean(value, config.spawnWind);
-                case "wind_must_see_sky", "windMustSeeSky" -> config.windMustSeeSky = parseBoolean(value, config.windMustSeeSky);
-                case "wind_density_mode", "windDensityMode" -> config.windDensityMode = parseWindDensityMode(value, config.windDensityMode);
-                case "minimumWindHeight" -> config.constantWind.minimumWindHeight = parseInt(value, config.constantWind.minimumWindHeight);
-                case "spawnRateMultiplier" -> config.constantWind.spawnRateMultiplier = parseDouble(value, config.constantWind.spawnRateMultiplier);
+                case "config_version", "configVersion" -> config.configVersion = parseInt(value, config.configVersion, state);
+                case "spawn_wind", "spawnWind" -> config.spawnWind = parseBoolean(value, config.spawnWind, state);
+                case "wind_must_see_sky", "windMustSeeSky" -> config.windMustSeeSky = parseBoolean(value, config.windMustSeeSky, state);
+                case "wind_density_mode", "windDensityMode" -> config.windDensityMode = parseWindDensityMode(value, config.windDensityMode, state);
+                case "minimumWindHeight" -> config.constantWind.minimumWindHeight = parseInt(value, config.constantWind.minimumWindHeight, state);
+                case "spawnRateMultiplier" -> config.constantWind.spawnRateMultiplier = parseDouble(value, config.constantWind.spawnRateMultiplier, state);
             }
         } else if (isSection(section, "constant_wind", "constantWind")) {
             switch (key) {
-                case "minimum_wind_height", "minimumWindHeight" -> config.constantWind.minimumWindHeight = parseInt(value, config.constantWind.minimumWindHeight);
-                case "spawn_rate_multiplier", "spawnRateMultiplier" -> config.constantWind.spawnRateMultiplier = parseDouble(value, config.constantWind.spawnRateMultiplier);
+                case "minimum_wind_height", "minimumWindHeight" -> config.constantWind.minimumWindHeight = parseInt(value, config.constantWind.minimumWindHeight, state);
+                case "spawn_rate_multiplier", "spawnRateMultiplier" -> config.constantWind.spawnRateMultiplier = parseDouble(value, config.constantWind.spawnRateMultiplier, state);
             }
         } else if (isSection(section, "y_level_scaling_wind", "yLevelScalingWind")) {
             switch (key) {
-                case "minimum_wind_height", "minimumWindHeight" -> config.yLevelScalingWind.minimumWindHeight = parseInt(value, config.yLevelScalingWind.minimumWindHeight);
-                case "minimum_height_spawn_rate_multiplier", "minimumHeightSpawnRateMultiplier" -> config.yLevelScalingWind.minimumHeightSpawnRateMultiplier = parseDouble(value, config.yLevelScalingWind.minimumHeightSpawnRateMultiplier);
-                case "maximum_wind_height", "maximumWindHeight" -> config.yLevelScalingWind.maximumWindHeight = parseInt(value, config.yLevelScalingWind.maximumWindHeight);
-                case "maximum_height_spawn_rate_multiplier", "maximumHeightSpawnRateMultiplier" -> config.yLevelScalingWind.maximumHeightSpawnRateMultiplier = parseDouble(value, config.yLevelScalingWind.maximumHeightSpawnRateMultiplier);
+                case "minimum_wind_height", "minimumWindHeight" -> config.yLevelScalingWind.minimumWindHeight = parseInt(value, config.yLevelScalingWind.minimumWindHeight, state);
+                case "minimum_height_spawn_rate_multiplier", "minimumHeightSpawnRateMultiplier" -> config.yLevelScalingWind.minimumHeightSpawnRateMultiplier = parseDouble(value, config.yLevelScalingWind.minimumHeightSpawnRateMultiplier, state);
+                case "maximum_wind_height", "maximumWindHeight" -> config.yLevelScalingWind.maximumWindHeight = parseInt(value, config.yLevelScalingWind.maximumWindHeight, state);
+                case "maximum_height_spawn_rate_multiplier", "maximumHeightSpawnRateMultiplier" -> config.yLevelScalingWind.maximumHeightSpawnRateMultiplier = parseDouble(value, config.yLevelScalingWind.maximumHeightSpawnRateMultiplier, state);
             }
         } else if (isSection(section, "biome_wind", "biomeWind")) {
             switch (key) {
-                case "enabled" -> config.biomeWind.enabled = parseBoolean(value, config.biomeWind.enabled);
-                case "blacklist" -> config.biomeWind.blacklist = parseStringList(value, config.biomeWind.blacklist);
+                case "enabled" -> config.biomeWind.enabled = parseBoolean(value, config.biomeWind.enabled, state);
+                case "blacklist" -> config.biomeWind.blacklist = parseStringList(value, config.biomeWind.blacklist, state);
             }
         } else if (isSection(section, "biome_wind.multipliers", "biomeWind.multipliers")) {
-            config.biomeWind.multipliers.put(normalizeRuleKey(key), parseDouble(value, 1.0D));
+            config.biomeWind.multipliers.put(normalizeRuleKey(key), parseDouble(value, 1.0D, state));
         }
     }
 
@@ -384,12 +422,18 @@ public class WindyConfig {
     }
 
     private static void appendStringListToml(StringBuilder builder, String key, List<String> values) {
-        builder.append(key).append(" = [");
-        if (values != null) {
-            for (int i = 0; i < values.size(); i++) {
-                if (i > 0) builder.append(", ");
-                builder.append(toTomlString(values.get(i)));
+        if (values == null || values.isEmpty()) {
+            builder.append(key).append(" = []\n");
+            return;
+        }
+
+        builder.append(key).append(" = [\n");
+        for (int i = 0; i < values.size(); i++) {
+            builder.append("  ").append(toTomlString(values.get(i)));
+            if (i < values.size() - 1) {
+                builder.append(',');
             }
+            builder.append('\n');
         }
         builder.append("]\n");
     }
@@ -468,46 +512,51 @@ public class WindyConfig {
         return value.isEmpty() ? fallback : value;
     }
 
-    private static WindDensityMode parseWindDensityMode(String rawValue, WindDensityMode fallback) {
+    private static WindDensityMode parseWindDensityMode(String rawValue, WindDensityMode fallback, TomlParseState state) {
         String value = parseString(rawValue, fallback.name()).trim().toUpperCase(Locale.ROOT);
         try {
             return WindDensityMode.valueOf(value);
         } catch (IllegalArgumentException e) {
+            state.hadParseProblems = true;
             return fallback;
         }
     }
 
-    private static boolean parseBoolean(String rawValue, boolean fallback) {
+    private static boolean parseBoolean(String rawValue, boolean fallback, TomlParseState state) {
         String value = rawValue.trim().toLowerCase(Locale.ROOT);
         if ("true".equals(value)) return true;
         if ("false".equals(value)) return false;
+        state.hadParseProblems = true;
         return fallback;
     }
 
-    private static int parseInt(String rawValue, int fallback) {
+    private static int parseInt(String rawValue, int fallback, TomlParseState state) {
         try {
             return Integer.parseInt(rawValue.trim());
         } catch (RuntimeException e) {
+            state.hadParseProblems = true;
             return fallback;
         }
     }
 
-    private static double parseDouble(String rawValue, double fallback) {
+    private static double parseDouble(String rawValue, double fallback, TomlParseState state) {
         try {
             return Double.parseDouble(rawValue.trim());
         } catch (RuntimeException e) {
+            state.hadParseProblems = true;
             return fallback;
         }
     }
 
-    private static List<String> parseStringList(String rawValue, List<String> fallback) {
+    private static List<String> parseStringList(String rawValue, List<String> fallback, TomlParseState state) {
         String value = rawValue.trim();
-        if (!value.startsWith("[") || !value.endsWith("]")) {
+        if (!value.startsWith("[") || !isCompleteTomlArray(value)) {
+            state.hadParseProblems = true;
             return fallback;
         }
 
         List<String> result = new ArrayList<>();
-        String inner = value.substring(1, value.length() - 1).trim();
+        String inner = value.substring(1, value.lastIndexOf(']')).trim();
         if (inner.isEmpty()) {
             return result;
         }
@@ -538,6 +587,10 @@ public class WindyConfig {
                 continue;
             }
             current.append(c);
+        }
+        if (inString) {
+            state.hadParseProblems = true;
+            return fallback;
         }
         addParsedListValue(result, current.toString());
         return result;
@@ -588,6 +641,54 @@ public class WindyConfig {
 
     private static String normalizeRuleKey(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean isCompleteTomlArray(String value) {
+        boolean inString = false;
+        boolean escaped = false;
+        int depth = 0;
+        boolean sawOpeningBracket = false;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (c == '\\' && inString) {
+                escaped = true;
+                continue;
+            }
+            if (c == '"') {
+                inString = !inString;
+                continue;
+            }
+            if (!inString) {
+                if (c == '[') {
+                    depth++;
+                    sawOpeningBracket = true;
+                } else if (c == ']') {
+                    depth--;
+                    if (sawOpeningBracket && depth <= 0) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return sawOpeningBracket && depth <= 0 && !inString;
+    }
+
+    private static class TomlReadResult {
+        private final WindyConfig config;
+        private final boolean hadParseProblems;
+
+        private TomlReadResult(WindyConfig config, boolean hadParseProblems) {
+            this.config = config;
+            this.hadParseProblems = hadParseProblems;
+        }
+    }
+
+    private static class TomlParseState {
+        private boolean hadParseProblems = false;
     }
 
     private static int getInt(JsonObject object, String key, int fallback) {
