@@ -1,6 +1,4 @@
-modLoader="javafml"
-loaderVersion="[47,)"
-license="${license}"
+license="${mod_license}"
 issueTrackerURL="https://github.com/BonfireMC/Windy/issues"
 
 [[mods]]
@@ -12,19 +10,19 @@ logoFile="assets/windy/icon.png"
 authors="${mod_authors}"
 description='''${mod_description}
 
-Original mod by BonfireMC. This is an unofficial Forge 1.20.1 fork/remake source tree for personal redistribution under the original LGPL-3.0-only license.
+Original mod by BonfireMC. This is an unofficial NeoForge 26.1.x fork/remake source tree for personal redistribution under the original LGPL-3.0-only license.
 '''
 
 [[dependencies.${mod_id}]]
-modId="forge"
-mandatory=true
-versionRange="[47,)"
+modId="neoforge"
+type="required"
+versionRange="${neo_version_range}"
 ordering="NONE"
 side="CLIENT"
 
 [[dependencies.${mod_id}]]
 modId="minecraft"
-mandatory=true
-versionRange="[1.20.1]"
+type="required"
+versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="CLIENT"

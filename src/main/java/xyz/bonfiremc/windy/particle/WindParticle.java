@@ -3,18 +3,20 @@ package xyz.bonfiremc.windy.particle;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
-import org.jetbrains.annotations.NotNull;
 
-public class WindParticle extends TextureSheetParticle {
+public class WindParticle extends SingleQuadParticle {
     private final SpriteSet sprites;
+    private final SingleQuadParticle.Layer layer;
 
     protected WindParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, SpriteSet sprites, int lifetime) {
-        super(world, x, y, z, velocityX, velocityY, velocityZ);
+        super(world, x, y, z, sprites.first());
+        this.xd = velocityX;
+        this.yd = velocityY;
+        this.zd = velocityZ;
         this.hasPhysics = true;
         this.lifetime = lifetime;
         this.scale(50.5F);
@@ -22,6 +24,7 @@ public class WindParticle extends TextureSheetParticle {
         this.setPos(x, y, z);
         this.setSpriteFromAge(sprites);
         this.sprites = sprites;
+        this.layer = SingleQuadParticle.Layer.bySprite(this.sprite);
     }
 
     @Override
@@ -31,8 +34,8 @@ public class WindParticle extends TextureSheetParticle {
     }
 
     @Override
-    public @NotNull ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    protected SingleQuadParticle.Layer getLayer() {
+        return this.layer;
     }
 
     public static class Normal extends WindParticle {
@@ -53,25 +56,24 @@ public class WindParticle extends TextureSheetParticle {
 
     public record Factory(SpriteSet sprites) implements ParticleProvider<SimpleParticleType> {
         @Override
-        public Particle createParticle(@NotNull SimpleParticleType parameters, @NotNull ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
-            return createShiftedParticle(world, x, y, z, velocityX, velocityY, velocityZ, this.sprites, false);
+        public Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, RandomSource random) {
+            return createShiftedParticle(world, x, y, z, velocityX, velocityY, velocityZ, this.sprites, false, random);
         }
     }
 
     public record StrongFactory(SpriteSet sprites) implements ParticleProvider<SimpleParticleType> {
         @Override
-        public Particle createParticle(@NotNull SimpleParticleType parameters, @NotNull ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
-            return createShiftedParticle(world, x, y, z, velocityX, velocityY, velocityZ, this.sprites, true);
+        public Particle createParticle(SimpleParticleType parameters, ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, RandomSource random) {
+            return createShiftedParticle(world, x, y, z, velocityX, velocityY, velocityZ, this.sprites, true, random);
         }
     }
 
 
-    public static Particle createFromAnchor(ClientLevel world, double x, double y, double z, SpriteSet sprites, boolean strong) {
-        return createShiftedParticle(world, x, y, z, 0.0D, 0.0D, 0.0D, sprites, strong);
+    public static Particle createFromAnchor(ClientLevel world, double x, double y, double z, SpriteSet sprites, boolean strong, RandomSource random) {
+        return createShiftedParticle(world, x, y, z, 0.0D, 0.0D, 0.0D, sprites, strong, random);
     }
 
-    private static Particle createShiftedParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, SpriteSet sprites, boolean strong) {
-        RandomSource random = world.random;
+    private static Particle createShiftedParticle(ClientLevel world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, SpriteSet sprites, boolean strong, RandomSource random) {
         int distance = random.nextInt(30) + 40;
         double angle = random.nextDouble() * Math.PI * 2.0D;
         double newY = y + random.nextInt(15) + random.nextInt(15);

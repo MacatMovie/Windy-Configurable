@@ -22,5 +22,5 @@
   "windy.config.scaling.minimumSpawnRateMultiplier": "Y-scaling minimum height multiplier",
   "windy.config.scaling.maximumWindHeight": "Y-scaling maximum wind height",
   "windy.config.scaling.maximumSpawnRateMultiplier": "Y-scaling maximum height multiplier",
-  "windy.config.advancedJsonNote": "Biome IDs, biome tags, blacklist, and examples can be edited in windy-config.json"
+  "windy.config.advancedJsonNote": "Biome IDs, biome tags, blacklist, and examples can be edited in windy-config.toml"
 }

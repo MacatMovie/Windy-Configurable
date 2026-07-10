@@ -1,36 +1,36 @@
 package xyz.bonfiremc.windy;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraft.resources.Identifier;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.NeoForge;
 import xyz.bonfiremc.windy.particle.WindParticle;
 
 import java.nio.file.Path;
 
-@Mod(WindyMod.MOD_ID)
+@Mod(value = WindyMod.MOD_ID, dist = Dist.CLIENT)
 public class WindyMod {
     public static final String MOD_ID = "windy";
 
-    public WindyMod() {
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-
+    public WindyMod(IEventBus modBus, ModContainer modContainer) {
         WindyConfig.load();
         WindyParticles.register(modBus);
+        NeoForge.EVENT_BUS.addListener(WindyParticleSpawner::onClientTick);
 
+        modContainer.registerExtensionPoint(IConfigScreenFactory.class, (minecraft, parent) -> ConfigScreen.create(parent));
         modBus.addListener(this::onClientSetup);
         modBus.addListener(this::registerParticleProviders);
     }
 
-    public static ResourceLocation asResource(String path) {
-        return new ResourceLocation(MOD_ID, path);
+    public static Identifier asResource(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static Path getConfigPath() {
@@ -38,10 +38,7 @@ public class WindyMod {
     }
 
     private void onClientSetup(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ModLoadingContext.get().registerExtensionPoint(
-                ConfigScreenHandler.ConfigScreenFactory.class,
-                () -> new ConfigScreenHandler.ConfigScreenFactory((mc, parent) -> ConfigScreen.create(parent))
-        ));
+        // Kept as a client setup hook in case future client-only registrations are added.
     }
 
     private void registerParticleProviders(RegisterParticleProvidersEvent event) {

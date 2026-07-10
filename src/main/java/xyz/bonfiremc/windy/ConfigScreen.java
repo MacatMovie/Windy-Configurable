@@ -1,7 +1,7 @@
 package xyz.bonfiremc.windy;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
@@ -104,25 +104,25 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
         int centerX = this.width / 2;
         int top = Math.max(32, this.height / 8);
-        guiGraphics.drawCenteredString(this.font, this.title, centerX, 16, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.spawnWind.desc"), centerX, top - 12, 0xA0A0A0);
+        guiGraphics.centeredText(this.font, this.title, centerX, 16, 0xFFFFFFFF);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.spawnWind.desc"), centerX, top - 12, 0xFFA0A0A0);
 
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.constant"), centerX, top + 92, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.minimumWindHeight.short"), centerX - 50, top + 113, 0xA0A0A0);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.spawnRateMultiplier.short"), centerX + 50, top + 113, 0xA0A0A0);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.constant"), centerX, top + 92, 0xFFFFFFFF);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.minimumWindHeight.short"), centerX - 50, top + 113, 0xFFA0A0A0);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.spawnRateMultiplier.short"), centerX + 50, top + 113, 0xFFA0A0A0);
 
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.yLevelScaling"), centerX, top + 138, 0xFFFFFF);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.minY.short"), centerX - 150, top + 159, 0xA0A0A0);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.minMultiplier.short"), centerX - 50, top + 159, 0xA0A0A0);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.maxY.short"), centerX + 50, top + 159, 0xA0A0A0);
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.maxMultiplier.short"), centerX + 150, top + 159, 0xA0A0A0);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.yLevelScaling"), centerX, top + 138, 0xFFFFFFFF);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.minY.short"), centerX - 150, top + 159, 0xFFA0A0A0);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.minMultiplier.short"), centerX - 50, top + 159, 0xFFA0A0A0);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.maxY.short"), centerX + 50, top + 159, 0xFFA0A0A0);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.maxMultiplier.short"), centerX + 150, top + 159, 0xFFA0A0A0);
 
-        guiGraphics.drawCenteredString(this.font, Component.translatable("windy.config.advancedJsonNote").withStyle(ChatFormatting.DARK_GRAY), centerX, top + 190, 0x808080);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.centeredText(this.font, Component.translatable("windy.config.advancedJsonNote").withStyle(ChatFormatting.DARK_GRAY), centerX, top + 190, 0xFF808080);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
     }
 
     private void saveAndClose() {
