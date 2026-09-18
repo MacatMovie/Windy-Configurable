@@ -1,0 +1,7 @@
+.gradle/
+build/
+run/
+mcmodsrepo/
+.idea/
+*.iml
+build-output/

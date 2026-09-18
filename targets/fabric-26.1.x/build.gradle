@@ -1,0 +1,86 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+apply from: '../../gradle/load-common.gradle'
+
+ext.mod_description = 'Configurable Fabric 26.1.x fork of Windy.'
+
+group = project.mod_group_id
+version = project.mod_version
+
+base { archivesName = project.mod_id }
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    withSourcesJar()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += [
+                    '../../shared/java/mc26-common',
+                '../../shared/java/mc261',
+                    '../../shared/java/mc26-fabric'
+            ]
+        }
+        resources { srcDirs += ['../../shared/resources'] }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.fabricmc.net/' }
+    maven { url = 'https://maven.terraformersmc.com/releases/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+}
+
+processResources {
+    inputs.property 'version', project.mod_version
+    inputs.property 'minecraft_version', project.minecraft_version
+    inputs.property 'minecraft_version_range', project.minecraft_version_range
+    inputs.property 'loader_version', project.loader_version
+    inputs.property 'fabric_api_version', project.fabric_api_version
+    inputs.property 'modmenu_version', project.modmenu_version
+
+    filesMatching(['fabric.mod.json', 'pack.mcmeta']) {
+        expand(
+                version: project.mod_version,
+                minecraft_version: project.minecraft_version,
+                minecraft_version_range: project.minecraft_version_range,
+                loader_version: project.loader_version,
+                fabric_api_version: project.fabric_api_version,
+                modmenu_version: project.modmenu_version,
+                mod_id: project.mod_id,
+                mod_name: project.mod_name,
+                mod_authors: project.mod_authors,
+                mod_description: project.mod_description,
+                mod_license: project.mod_license
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+tasks.named('jar', Jar).configure {
+    archiveFileName = "Windy_Fabric-26.1.x-v${project.mod_version}.jar"
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) { from components.java }
+    }
+    repositories {
+        maven { url = uri("${project.projectDir}/mcmodsrepo") }
+    }
+}

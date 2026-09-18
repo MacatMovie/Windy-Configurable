@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "BonfireMC",
+    "Pathmakers Studio"
+  ],
+  "contact": {
+    "homepage": "https://github.com/BonfireMC/Windy",
+    "issues": "https://github.com/BonfireMC/Windy/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/windy/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "xyz.bonfiremc.windy.WindyMod"
+    ],
+    "client": [
+      "xyz.bonfiremc.windy.WindyClient"
+    ],
+    "modmenu": [
+      "xyz.bonfiremc.windy.WindyModMenu"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "${minecraft_version_range}",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": ">=${modmenu_version}"
+  },
+  "custom": {
+    "windy:credits": "Original mod by BonfireMC. This is an unofficial Fabric 26.x fork/remake source tree for personal redistribution under the original LGPL-3.0-only license."
+  }
+}

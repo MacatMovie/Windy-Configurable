@@ -1,0 +1,83 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'maven-publish'
+}
+apply from: '../../gradle/load-common.gradle'
+
+ext.mod_description = 'Configurable Fabric 1.20.1 fork of Windy.'
+
+group = project.mod_group_id
+version = project.mod_version
+
+base { archivesName = project.mod_id }
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    withSourcesJar()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += [
+                    '../../shared/java/mc1x-common',
+                    '../../shared/java/mc1201',
+                    '../../shared/java/fabric',
+                    '../../shared/java/mc1x-fabric-neoforge'
+            ]
+        }
+        resources { srcDirs += ['../../shared/resources'] }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.fabricmc.net/' }
+    maven { url = 'https://maven.terraformersmc.com/releases/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+}
+
+processResources {
+    inputs.property 'version', project.mod_version
+    inputs.property 'minecraft_version', project.minecraft_version
+    inputs.property 'loader_version', project.loader_version
+    inputs.property 'fabric_api_version', project.fabric_api_version
+
+    filesMatching(['fabric.mod.json', 'pack.mcmeta']) {
+        expand(
+                version: project.mod_version,
+                minecraft_version: project.minecraft_version,
+                loader_version: project.loader_version,
+                mod_id: project.mod_id,
+                mod_name: project.mod_name,
+                mod_authors: project.mod_authors,
+                mod_description: project.mod_description,
+                mod_license: project.mod_license
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
+tasks.named('remapJar').configure {
+    archiveFileName = "Windy_Fabric-${project.minecraft_version}-v${project.mod_version}.jar"
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) { from components.java }
+    }
+    repositories {
+        maven { url = uri("${project.projectDir}/mcmodsrepo") }
+    }
+}

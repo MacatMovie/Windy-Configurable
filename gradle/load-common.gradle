@@ -1,0 +1,11 @@
+// Loads metadata from the monorepo root into an independently buildable target.
+def sharedPropertiesFile = project.file('../../gradle.properties')
+if (!sharedPropertiesFile.exists()) {
+    throw new GradleException("Missing shared properties: ${sharedPropertiesFile}")
+}
+
+def sharedProperties = new Properties()
+sharedPropertiesFile.withInputStream { sharedProperties.load(it) }
+sharedProperties.each { key, value ->
+    project.ext.set(key.toString(), value.toString())
+}
