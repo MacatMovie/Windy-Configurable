@@ -8,6 +8,7 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
+import xyz.bonfiremc.windy.LivingWindCompat;
 
 public class WindParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
@@ -76,8 +77,14 @@ public class WindParticle extends TextureSheetParticle {
         double newY = y + random.nextInt(15) + random.nextInt(15);
         double shiftedX = (Math.cos(angle) * distance) + x;
         double shiftedZ = (Math.sin(angle) * distance) + z;
+        double resolvedVelocityX = velocityX;
+        double resolvedVelocityZ = velocityZ;
+        if (LivingWindCompat.isActive()) {
+            resolvedVelocityX = LivingWindCompat.velocityX(strong);
+            resolvedVelocityZ = LivingWindCompat.velocityZ(strong);
+        }
         return strong
-                ? new Strong(world, shiftedX, newY, shiftedZ, velocityX, velocityY, velocityZ, sprites)
-                : new Normal(world, shiftedX, newY, shiftedZ, velocityX, velocityY, velocityZ, sprites);
+                ? new Strong(world, shiftedX, newY, shiftedZ, resolvedVelocityX, velocityY, resolvedVelocityZ, sprites)
+                : new Normal(world, shiftedX, newY, shiftedZ, resolvedVelocityX, velocityY, resolvedVelocityZ, sprites);
     }
 }

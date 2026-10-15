@@ -26,7 +26,7 @@ import java.util.Optional;
 
 public class WindyConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final int CURRENT_CONFIG_VERSION = 2;
+    private static final int CURRENT_CONFIG_VERSION = 3;
     private static WindyConfig INSTANCE = new WindyConfig();
 
     public int configVersion = CURRENT_CONFIG_VERSION;
@@ -36,6 +36,7 @@ public class WindyConfig {
     public ConstantWind constantWind = new ConstantWind();
     public YLevelScalingWind yLevelScalingWind = new YLevelScalingWind();
     public BiomeWind biomeWind = new BiomeWind();
+    public LivingWindIntegration livingWind = new LivingWindIntegration();
 
     private transient Map<String, Double> biomeMultiplierCache = new LinkedHashMap<>();
     private transient Map<String, TagKey<Biome>> tagKeyCache = new LinkedHashMap<>();
@@ -235,6 +236,7 @@ public class WindyConfig {
         if (constantWind == null) constantWind = new ConstantWind();
         if (yLevelScalingWind == null) yLevelScalingWind = new YLevelScalingWind();
         if (biomeWind == null) biomeWind = new BiomeWind();
+        if (livingWind == null) livingWind = new LivingWindIntegration();
         if (biomeMultiplierCache == null) biomeMultiplierCache = new LinkedHashMap<>();
         if (tagKeyCache == null) tagKeyCache = new LinkedHashMap<>();
 
@@ -250,6 +252,9 @@ public class WindyConfig {
         yLevelScalingWind.maximumHeightSpawnRateMultiplier = clampDouble(yLevelScalingWind.maximumHeightSpawnRateMultiplier, 0.0D, 100.0D);
 
         biomeWind.sanitize();
+        livingWind.minimumStrength = clampDouble(livingWind.minimumStrength, 0.0D, 3.0D);
+        livingWind.densityMultiplier = clampDouble(livingWind.densityMultiplier, 0.0D, 10.0D);
+        livingWind.strongParticleThreshold = clampDouble(livingWind.strongParticleThreshold, 0.0D, 3.0D);
         clearBiomeCache();
     }
 
@@ -341,6 +346,13 @@ public class WindyConfig {
                 case "maximum_wind_height", "maximumWindHeight" -> config.yLevelScalingWind.maximumWindHeight = parseInt(value, config.yLevelScalingWind.maximumWindHeight, state);
                 case "maximum_height_spawn_rate_multiplier", "maximumHeightSpawnRateMultiplier" -> config.yLevelScalingWind.maximumHeightSpawnRateMultiplier = parseDouble(value, config.yLevelScalingWind.maximumHeightSpawnRateMultiplier, state);
             }
+        } else if (isSection(section, "living_wind", "livingWind")) {
+            switch (key) {
+                case "enabled" -> config.livingWind.enabled = parseBoolean(value, config.livingWind.enabled, state);
+                case "minimum_strength", "minimumStrength" -> config.livingWind.minimumStrength = parseDouble(value, config.livingWind.minimumStrength, state);
+                case "density_multiplier", "densityMultiplier" -> config.livingWind.densityMultiplier = parseDouble(value, config.livingWind.densityMultiplier, state);
+                case "strong_particle_threshold", "strongParticleThreshold" -> config.livingWind.strongParticleThreshold = parseDouble(value, config.livingWind.strongParticleThreshold, state);
+            }
         } else if (isSection(section, "biome_wind", "biomeWind")) {
             switch (key) {
                 case "enabled" -> config.biomeWind.enabled = parseBoolean(value, config.biomeWind.enabled, state);
@@ -381,6 +393,15 @@ public class WindyConfig {
         appendTomlValue(builder, "minimum_height_spawn_rate_multiplier", yLevelScalingWind.minimumHeightSpawnRateMultiplier);
         appendTomlValue(builder, "maximum_wind_height", yLevelScalingWind.maximumWindHeight);
         appendTomlValue(builder, "maximum_height_spawn_rate_multiplier", yLevelScalingWind.maximumHeightSpawnRateMultiplier);
+        builder.append('\n');
+
+        appendSection(builder, "living_wind");
+        appendComment(builder, "Optional Living Wind integration. If enabled and Living Wind is present, Windy uses its synchronized wind direction and strength.");
+        appendComment(builder, "When active, Windy's own Y-level and biome density rules are bypassed because Living Wind supplies environmental strength.");
+        appendTomlValue(builder, "enabled", livingWind.enabled);
+        appendTomlValue(builder, "minimum_strength", livingWind.minimumStrength);
+        appendTomlValue(builder, "density_multiplier", livingWind.densityMultiplier);
+        appendTomlValue(builder, "strong_particle_threshold", livingWind.strongParticleThreshold);
         builder.append('\n');
 
         appendSection(builder, "biome_wind");
@@ -716,6 +737,13 @@ public class WindyConfig {
             return min;
         }
         return Math.max(min, Math.min(max, value));
+    }
+
+    public static class LivingWindIntegration {
+        public boolean enabled = true;
+        public double minimumStrength = 0.08D;
+        public double densityMultiplier = 1.0D;
+        public double strongParticleThreshold = 0.75D;
     }
 
     public enum WindDensityMode {

@@ -57,6 +57,16 @@ public final class ConfigScreen extends Screen {
                 value -> workingCopy.windMustSeeSky = value);
         addDensityMode();
 
+        addHeader("windy.config.section.livingwind");
+        addBoolean("windy.config.livingWindEnabled", "windy.config.livingWindEnabled.tooltip", workingCopy.livingWind.enabled,
+                value -> workingCopy.livingWind.enabled = value);
+        addDecimal("windy.config.livingWindMinimumStrength", "windy.config.livingWindMinimumStrength.tooltip",
+                workingCopy.livingWind.minimumStrength, value -> workingCopy.livingWind.minimumStrength = parseDouble(value, workingCopy.livingWind.minimumStrength));
+        addDecimal("windy.config.livingWindDensityMultiplier", "windy.config.livingWindDensityMultiplier.tooltip",
+                workingCopy.livingWind.densityMultiplier, value -> workingCopy.livingWind.densityMultiplier = parseDouble(value, workingCopy.livingWind.densityMultiplier));
+        addDecimal("windy.config.livingWindStrongThreshold", "windy.config.livingWindStrongThreshold.tooltip",
+                workingCopy.livingWind.strongParticleThreshold, value -> workingCopy.livingWind.strongParticleThreshold = parseDouble(value, workingCopy.livingWind.strongParticleThreshold));
+
         addHeader("windy.config.section.constant");
         addInteger("windy.config.constant.minimumWindHeight", "windy.config.constant.minimumWindHeight.tooltip",
                 workingCopy.constantWind.minimumWindHeight,
@@ -185,6 +195,7 @@ public final class ConfigScreen extends Screen {
         target.constantWind = workingCopy.constantWind;
         target.yLevelScalingWind = workingCopy.yLevelScalingWind;
         target.biomeWind = workingCopy.biomeWind;
+        target.livingWind = workingCopy.livingWind;
         target.clearBiomeCache();
         WindyConfig.save();
         minecraft.setScreen(parent);
@@ -388,6 +399,12 @@ public final class ConfigScreen extends Screen {
         copy.yLevelScalingWind.minimumHeightSpawnRateMultiplier = original.yLevelScalingWind.minimumHeightSpawnRateMultiplier;
         copy.yLevelScalingWind.maximumWindHeight = original.yLevelScalingWind.maximumWindHeight;
         copy.yLevelScalingWind.maximumHeightSpawnRateMultiplier = original.yLevelScalingWind.maximumHeightSpawnRateMultiplier;
+
+        copy.livingWind = new WindyConfig.LivingWindIntegration();
+        copy.livingWind.enabled = original.livingWind.enabled;
+        copy.livingWind.minimumStrength = original.livingWind.minimumStrength;
+        copy.livingWind.densityMultiplier = original.livingWind.densityMultiplier;
+        copy.livingWind.strongParticleThreshold = original.livingWind.strongParticleThreshold;
 
         copy.biomeWind = new WindyConfig.BiomeWind();
         copy.biomeWind.enabled = original.biomeWind.enabled;

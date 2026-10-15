@@ -42,5 +42,14 @@
   "windy.config.biomeBlacklist": "Biome blacklist",
   "windy.config.biomeBlacklist.tooltip": "Comma-separated biome IDs or biome tags that should spawn no wind. Example: minecraft:deep_dark, #minecraft:is_nether",
   "windy.config.biomeMultipliers": "Biome multipliers",
-  "windy.config.biomeMultipliers.tooltip": "Comma-separated biome or tag multipliers in key=value form. Example: #minecraft:is_ocean=1.5, minecraft:desert=0.6. Blacklist entries win; exact biome IDs override tags; if multiple tags match, the highest multiplier is used."
+  "windy.config.biomeMultipliers.tooltip": "Comma-separated biome or tag multipliers in key=value form. Example: #minecraft:is_ocean=1.5, minecraft:desert=0.6. Blacklist entries win; exact biome IDs override tags; if multiple tags match, the highest multiplier is used.",
+  "windy.config.section.livingwind": "Living Wind Compatibility",
+  "windy.config.livingWindEnabled": "Use Living Wind when installed",
+  "windy.config.livingWindEnabled.tooltip": "When Living Wind is installed and has a synchronized wind state, use its direction and strength for Windy. Windy's own Y-level and biome density rules are bypassed while this integration is active.",
+  "windy.config.livingWindMinimumStrength": "Minimum Living Wind strength",
+  "windy.config.livingWindMinimumStrength.tooltip": "Below this Living Wind strength, Windy spawns no wind streak particles.",
+  "windy.config.livingWindDensityMultiplier": "Living Wind density multiplier",
+  "windy.config.livingWindDensityMultiplier.tooltip": "Scales how many Windy particles spawn from Living Wind strength without changing Living Wind itself.",
+  "windy.config.livingWindStrongThreshold": "Strong-particle threshold",
+  "windy.config.livingWindStrongThreshold.tooltip": "Living Wind strength at which Windy switches to its strong-wind particle animation."
 }

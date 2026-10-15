@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.bonfiremc.windy.WindyConfig;
+import xyz.bonfiremc.windy.LivingWindCompat;
 import xyz.bonfiremc.windy.WindyParticleSpawner;
 
 @Mixin(ClientLevel.class)
@@ -23,10 +24,35 @@ public abstract class ClientLevelMixin {
         }
 
         WindyConfig config = WindyConfig.get();
-        if (!config.spawnWind || blockPos.getY() < config.getActiveMinimumWindHeight()) {
+        if (!config.spawnWind) {
             return;
         }
         if (config.windMustSeeSky && !world.canSeeSky(blockPos)) {
+            return;
+        }
+
+        if (LivingWindCompat.isActive()) {
+            float strength = LivingWindCompat.strength();
+            double density = LivingWindCompat.spawnRateMultiplier(strength);
+            if (density <= 0.0D) return;
+
+            double finalChancePercent = 0.015D * density;
+            if (random.nextDouble() * 100.0D <= finalChancePercent) {
+                boolean useStrongWind = LivingWindCompat.useStrongParticle(strength);
+                if (!WindyParticleSpawner.canSpawn(useStrongWind)) return;
+                WindyParticleSpawner.spawn(
+                    world,
+                    blockPos.getX() + random.nextDouble(),
+                    blockPos.getY() + random.nextDouble(),
+                    blockPos.getZ() + random.nextDouble(),
+                    useStrongWind
+                );
+            }
+            return;
+        }
+
+        // Standalone Windy behavior remains unchanged when Living Wind is absent/disabled.
+        if (blockPos.getY() < config.getActiveMinimumWindHeight()) {
             return;
         }
 
